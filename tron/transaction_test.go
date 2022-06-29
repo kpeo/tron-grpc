@@ -18,23 +18,23 @@ import (
 // Please fill the values for the tests
 // (you can get them via https://nileex.io/join/getJoinPage)
 
-const test_TxAddressFrom string = ""
-const test_TxAddressFromPrivateKey string = ""
-const test_TxAddressTo string = ""
+const test_TxAddressFrom string = "TW8b5Z4mXbeRNQmAiSQiQrZSEZjgiQbhAW"
+const test_TxAddressFromKey string = "4b9bfeb271fd55de4721d5f22f2b4068"
+const test_TxAddressFromKey2 string = "1c6879a482e7250f01ecfa1a9ddd53d8"
 
 const test_TxTransferAmount int64 = 100
 const test_TxTransferFeeLimit int64 = 100000
 
 const test_TxTrc10AssetId string = "1000016" // TRZ (TRONZ)
-const test_TxTrc10Balance int64 = 300
+const test_TxTrc10Balance int64 = 120
 
 const test_TxTrc20Contract string = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj" //USDT
-const test_TxTrc20Balance int64 = 21000
+const test_TxTrc20Balance int64 = 11000
 
 const test_TxTransactionId string = "ad8b0d5847d5c83a91a78d5ac288c5aba60fac4654a3c544be1493cf67b0e798"
 const test_TxTransactionFee int64 = 100000
 
-const test_TxAddressWithBalance string = "TW8b5Z4mXbeRNQmAiSQiQrZSEZjgiQbhAW"
+const test_TxAddressWithBalance string = "TXGE3trrKNejRrkF8BT7AQFd6ZAExP8qCd"
 const test_TxAddressBalance int64 = 100
 
 const test_TxTransferId string = "b30d2d93ade310b8d5545155683f7a62f6572f72a889ac7f86c2a10f63c57fe8"
@@ -46,11 +46,12 @@ func Test_TransferTrx(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewTronClient error: %v", err)
 	}
-	tx, err := c.Transfer(test_TxAddressFrom, test_TxAddressTo, test_TxTransferAmount)
+	_, addr := CreateAddress()
+	tx, err := c.Transfer(test_TxAddressFrom, addr, 100)
 	if err != nil {
 		t.Fatalf("Transfer error: %v", err)
 	}
-	signTx, err := SignTransaction(tx.Transaction, test_TxAddressFromPrivateKey)
+	signTx, err := SignTransaction(tx.Transaction, test_TxAddressFromKey+test_TxAddressFromKey2)
 	if err != nil {
 		t.Fatalf("SignTransaction error: %v", err)
 	}
@@ -75,6 +76,33 @@ func Test_GetBalance(t *testing.T) {
 	}
 }
 
+func Test_TransferTrc20(t *testing.T) {
+	c, err := NewTronClient(test_TronGrpcNode, grpc.WithInsecure())
+	if err != nil {
+		t.Fatalf("NewTronClient error: %v", err)
+	}
+	
+	amount := big.NewInt(110)
+	amount = amount.Mul(amount, big.NewInt(test_TxTransferAmount))
+
+	_, addr := CreateAddress()
+
+	tx, err := c.TransferTrc20(test_TxAddressFrom, addr,
+			test_TxTrc20Contract, amount, test_TxTransferFeeLimit)
+	if err != nil {
+		t.Fatalf("TransferTrc20 error: %v", err)
+	}
+	signTx, err := SignTransaction(tx.Transaction, test_TxAddressFromKey+test_TxAddressFromKey2)
+	if err != nil {
+		t.Fatalf("SignTransaction error: %v", err)
+	}
+	err = c.BroadcastTransaction(signTx)
+	if err != nil {
+		t.Fatalf("BroadcastTransaction error: %v", err)
+	}
+	fmt.Printf("TransferTrc20 passed, txid=%s\n", common.BytesToHexString(tx.GetTxid()))
+}
+
 func Test_GetTrc20Balance(t *testing.T) {
 	c, err := NewTronClient(test_TronGrpcNode, grpc.WithInsecure())
 	if err != nil {
@@ -85,31 +113,8 @@ func Test_GetTrc20Balance(t *testing.T) {
 		t.Fatalf("GetTrc20Balance error: %v", err)
 	}
 	if trc20.Cmp(big.NewInt(test_TxTrc20Balance)) != 0 {
-		t.Fatalf("Current TRC20 balance %d for address %s doesn't match tre required value %d", trc20.Int64(), test_TxAddressWithBalance, test_TxTrc20Balance)
+		t.Fatalf("Current TRC20 balance %d for address %s doesn't match the required value %d", trc20.Int64(), test_TxAddressWithBalance, test_TxTrc20Balance)
 	} 
-}
-
-func Test_TransferTrc20(t *testing.T) {
-	c, err := NewTronClient(test_TronGrpcNode, grpc.WithInsecure())
-	if err != nil {
-		t.Fatalf("NewTronClient error: %v", err)
-	}
-	amount := big.NewInt(200)
-	amount = amount.Mul(amount, big.NewInt(test_TxTransferAmount))
-	tx, err := c.TransferTrc20(test_TxAddressFrom, test_TxAddressTo,
-			test_TxTrc20Contract, amount, test_TxTransferFeeLimit)
-	if err != nil {
-		t.Fatalf("TransferTrc20 error: %v", err)
-	}
-	signTx, err := SignTransaction(tx.Transaction, test_TxAddressFromPrivateKey)
-	if err != nil {
-		t.Fatalf("SignTransaction error: %v", err)
-	}
-	err = c.BroadcastTransaction(signTx)
-	if err != nil {
-		t.Fatalf("BroadcastTransaction error: %v", err)
-	}
-	fmt.Printf("TransferTrc20 passed, txid=%s\n", common.BytesToHexString(tx.GetTxid()))
 }
 
 func Test_TransferTrc10(t *testing.T) {
@@ -121,15 +126,16 @@ func Test_TransferTrc10(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Base58ToAddress(from) error: %v", err)
 	}
-	to, err := addr.Base58ToAddress(test_TxAddressTo)
+	//_, a := CreateAddress()
+	to, err := addr.Base58ToAddress("TXGE3trrKNejRrkF8BT7AQFd6ZAExP8qCd")
 	if err != nil {
 		t.Fatalf("Base58ToAddress(to) error: %v", err)
 	}
-	tx, err := c.grpc.TransferAsset(from.String(), to.String(), test_TxTrc10AssetId, test_TxTransferAmount)
+	tx, err := c.grpc.TransferAsset(from.String(), to.String(), test_TxTrc10AssetId, 120)
 	if err != nil {
 		t.Fatalf("TransferAsset error: %v", err)
 	}
-	signTx, err := SignTransaction(tx.Transaction, test_TxAddressFromPrivateKey)
+	signTx, err := SignTransaction(tx.Transaction, test_TxAddressFromKey+test_TxAddressFromKey2)
 	if err != nil {
 		t.Fatalf("SignTransaction error: %v", err)
 	}
