@@ -43,8 +43,11 @@ func (c *TronClient) SetTimeout(timeout time.Duration, opts ...grpc.DialOption) 
 	return nil
 }
 
-// keepConnect keeps the connection and if it fails - reconnect
+// keepConnect keeps the connection and reconnecting if it fails
 func (c *TronClient) keepConnect() error {
+	if c == nil || c.grpc == nil {
+		return errors.New("client is nil or not initialized")
+	}
 	_, err := c.grpc.GetNodeInfo()
 	if err != nil {
 		if strings.Contains(err.Error(), "no such host") {
