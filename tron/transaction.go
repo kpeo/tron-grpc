@@ -14,7 +14,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// GetTrc10Balance get TRC10 balance of assetId for address
+// GetTrc10Balance get TRC10 balance of assetId for the address
 func (c *TronClient) GetTrc10Balance(addr, assetId string) (int64, error) {
 	err := c.keepConnect()
 	if err != nil {
@@ -32,13 +32,17 @@ func (c *TronClient) GetTrc10Balance(addr, assetId string) (int64, error) {
 	return 0, fmt.Errorf("can't find asset_id=%s for account %s", assetId, addr)
 }
 
-// GetTrxBalance get TRX balance for address
-func (c *TronClient) GetTrxBalance(addr string) (*core.Account, error) {
+// GetTrxBalance get TRX balance for the address
+func (c *TronClient) GetTrxBalance(addr string) (int64, error) {
 	err := c.keepConnect()
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return c.grpc.GetAccount(addr)
+	acc, err := c.grpc.GetAccount(addr)
+	if err != nil {
+		return 0, err
+	}
+	return acc.GetBalance(), nil
 }
 
 // GetTrc20Balance get TRC20 balance of contract address for address 
