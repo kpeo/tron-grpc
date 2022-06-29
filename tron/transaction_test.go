@@ -26,7 +26,7 @@ const test_TxTransferAmount int64 = 100
 const test_TxTransferFeeLimit int64 = 100000
 
 const test_TxTrc10AssetId string = "1000016" // TRZ (TRONZ)
-const test_TxTrc10Balance int64 = 120
+const test_TxTrc10Balance int64 = 240
 
 const test_TxTrc20Contract string = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj" //USDT
 const test_TxTrc20Balance int64 = 11000
@@ -126,8 +126,8 @@ func Test_TransferTrc10(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Base58ToAddress(from) error: %v", err)
 	}
-	//_, a := CreateAddress()
-	to, err := addr.Base58ToAddress("TXGE3trrKNejRrkF8BT7AQFd6ZAExP8qCd")
+	_, a := CreateAddress()
+	to, err := addr.Base58ToAddress(a)
 	if err != nil {
 		t.Fatalf("Base58ToAddress(to) error: %v", err)
 	}
