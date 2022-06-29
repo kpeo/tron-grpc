@@ -1,3 +1,5 @@
+![main workflow](https://github.com/kpeo/tron-grpc/actions/workflows/go.yml/badge.svg)
+
 # tron-grpc
 
 Simple Go GRPC-client for the TRON blockchain.
