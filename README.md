@@ -1,4 +1,4 @@
-![main workflow](https://github.com/kpeo/tron-grpc/actions/workflows/go.yml/badge.svg)
+![main workflow](https://github.com/kpeo/tron-grpc/actions/workflows/main.yml/badge.svg)
 
 # tron-grpc
 
